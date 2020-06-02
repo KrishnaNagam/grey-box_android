@@ -1,0 +1,6 @@
+#!/system/bin/sh
+su -c "service call connectivity 24 i32 0 s16 random"
+su -c "sleep 5"
+su -c "/data/data/com.android.myapplication/files/lighttpd -f /data/data/com.android.myapplication/files/lighttpd.conf"
+su -c "killall dnsmasq"
+su -c "dnsmasq -C /data/data/com.android.myapplication/files/dns.conf -x /data/data/com.android.myapplication/files/dns.pid"
