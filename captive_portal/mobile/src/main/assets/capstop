@@ -1,0 +1,4 @@
+#!/system/bin/sh
+su -c "service call connectivity 25"
+su -c "killall lighttpd"
+su -c "killall dnsmasq"

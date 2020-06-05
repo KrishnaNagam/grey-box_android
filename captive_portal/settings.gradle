@@ -1,0 +1,2 @@
+include ':mobile', ':tv'
+rootProject.name='captive_portal'
