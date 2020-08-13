@@ -21,8 +21,7 @@ public class BootUpReceiver extends BroadcastReceiver {
                 myPrefsPrefsEditor.putBoolean("enabled",true);
                 myPrefsPrefsEditor.apply();
                 try {
-                    Runtime.getRuntime().exec("su");
-                    Runtime.getRuntime().exec(context.getFilesDir().getAbsolutePath() + "/capstart");
+                    Runtime.getRuntime().exec("su -c \""+context.getFilesDir().getAbsolutePath() + "/capstart\"");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

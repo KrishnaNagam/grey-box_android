@@ -6,17 +6,17 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
-import android.net.ConnectivityManager;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
+import android.os.SystemClock;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -26,11 +26,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public class MainActivity extends AppCompatActivity {
     CheckBox onBoot;
+    TextView stdOut;
     Button startStop;
     SharedPreferences myPrefs;
     //CheckedTextView ch;
@@ -43,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         onBoot=findViewById(R.id.setOnBoot);
         startStop=findViewById(R.id.startStop);
+        stdOut=findViewById(R.id.stdout);
+        stdOut.setMovementMethod(new ScrollingMovementMethod());
         //ch=findViewById(R.id.ch);
         //stdOut=findViewById(R.id.stdout);
         myPrefs=this.getSharedPreferences(myPref,Context.MODE_PRIVATE);
@@ -57,6 +58,18 @@ public class MainActivity extends AppCompatActivity {
             startStop.setText("start");
         }
         ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},2);
+        Boolean isAnswered = true;
+
+        while(isAnswered){
+
+            if (ActivityCompat.checkSelfPermission(getApplication(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) {
+                Log.d("isanswered", String.valueOf(isAnswered));
+            }
+            else{
+                isAnswered = false;
+                Log.d("isanswered", String.valueOf(isAnswered));
+            }
+        }
         if (!isRootGiven()){
             Toast.makeText(this,"root permission needed",Toast.LENGTH_SHORT).show();
         }
@@ -70,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
                     "capstart",
                     "capstop",
                     "lighttpd.conf",
-                    "dns.conf",
                     "dns.pid",
                     "php",
                     "php.ini",
@@ -95,12 +107,8 @@ public class MainActivity extends AppCompatActivity {
                     android.util.Log.e("Error", e.toString());
                 }
             }
-            if(!isRootGiven()){
-                Toast.makeText(this,"root permission needed",Toast.LENGTH_SHORT).show();
-            }
 
                 try {
-                    Runtime.getRuntime().exec("su");
                     Runtime.getRuntime().exec("chmod -R 755 " + getFilesDir()).waitFor();
                     String out=this.getFilesDir().getAbsolutePath()+"/tmp";
                     File f = new File(out);
@@ -153,23 +161,11 @@ public class MainActivity extends AppCompatActivity {
             myPrefsPrefsEditor.putBoolean("enabled",true);
             myPrefsPrefsEditor.apply();
             try {
-                Runtime.getRuntime().exec("su");
-                Runtime.getRuntime().exec(getFilesDir().getPath() + "/capstart").waitFor();
-                //InputStream stdout = proc.getInputStream();
-                //InputStream stderr = proc.getErrorStream();
-                //BufferedReader br = new BufferedReader(new InputStreamReader(stdout));
-                //StringBuilder result=new StringBuilder();
-                //String line;
-                //while((line = br.readLine())!=null)
-                    //result.append(line);
-                //stdOut.setText(result.toString());
-                //br = new BufferedReader(new InputStreamReader(stderr));
-                //while ((line = br.readLine())!=null)
-                    //System.out.println("stderr: "+line);
+                Runtime.getRuntime().exec("su -c \""+getFilesDir().getPath() + "/capstart\"").waitFor();
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+             e.printStackTrace();
             }
         }
     else{
@@ -179,8 +175,7 @@ public class MainActivity extends AppCompatActivity {
             myPrefsPrefsEditor.apply();
             startStop.setText("start");
             try {
-                Runtime.getRuntime().exec("su");
-                Runtime.getRuntime().exec(getFilesDir().getPath() + "/capstop").waitFor();
+                Runtime.getRuntime().exec("su -c \""+getFilesDir().getPath() + "/capstop\"").waitFor();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (IOException e) {
