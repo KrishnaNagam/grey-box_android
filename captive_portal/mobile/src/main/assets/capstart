@@ -1,6 +1,19 @@
 #!/system/bin/sh
-su -c "service call connectivity 24 i32 0 s16 random"
-su -c "sleep 5"
-su -c "/data/data/com.android.myapplication/files/lighttpd -f /data/data/com.android.myapplication/files/lighttpd.conf"
-su -c "killall dnsmasq"
-su -c "dnsmasq -C /data/data/com.android.myapplication/files/dns.conf -x /data/data/com.android.myapplication/files/dns.pid"
+path="/data/data/com.android.myapplication/files"
+service call connectivity 24 i32 0 s16 random > /dev/null 2>&1
+sleep 5
+if="wlan0"
+ifconfig | grep -o "ap0" && if="ap0"
+echo $if
+ip=$(ifconfig | grep -o "192.168.43...." | grep -m 1 "192")
+echo $ip
+$path/lighttpd -f $path/lighttpd.conf
+pgrep dnsmasq && killall dnsmasq
+dnsmasq -x $path/dns.pid \
+--interface=$if \
+--address=/#/$ip \
+--dhcp-range=192.168.43.2,192.168.43.30,255.255.255.0,12h \
+--dhcp-option=3,$ip \
+--dhcp-option=6,$ip \
+--server=8.8.8.8 \
+--listen-address=127.0.0.1
